@@ -1,0 +1,409 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(135deg, #1a0b2e 0%, #3a0ca3 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Añadimos este reseteo para el #root por si acaso */
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  max-width: none;
+}
+
+/* Ajustamos el contenedor */
+.juego-contenedor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  padding: 20px; /* Aquí le devolvemos el hueco de la derecha */
+  box-sizing: border-box;
+  gap: 20px;
+  overflow: hidden;
+}
+
+/* --- LADO IZQUIERDO (JUEGO) --- */
+.zona-juego {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Lo subimos un poco */
+  padding-top: 5vh;
+  gap: 40px; /* Separación limpia entre texto e imagen, adiós solapamiento */
+}
+
+.estadisticas-top {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.rango-badge {
+  background: linear-gradient(90deg, #f1c40f, #f39c12);
+  color: black;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 15px rgba(243, 156, 18, 0.4);
+  letter-spacing: 1px;
+}
+
+.monedas-totales {
+  font-size: 3.5rem;
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+  margin: 10px 0;
+}
+
+.monedas-segundo {
+  color: #a0d2eb;
+  font-size: 1.2rem;
+  font-weight: 500;
+}
+
+/* BARRA DE PROGRESO */
+.contenedor-progreso {
+  width: 300px;
+  height: 24px;
+  background-color: #121224;
+  border-radius: 12px;
+  border: 2px solid #3a3a6a;
+  position: relative;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.barra-progreso {
+  height: 100%;
+  background: linear-gradient(90deg, #9b59b6, #8e44ad);
+  transition: width 0.3s ease-out;
+}
+
+.barra-progreso.max-level {
+  background: linear-gradient(90deg, #f1c40f, #e74c3c);
+}
+
+.texto-progreso {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px black;
+  z-index: 2;
+}
+
+.zona-clic {
+  cursor: pointer;
+  transition: transform 0.05s;
+  user-select: none; /* Evita que el texto se subraye al hacer clic rápido */
+}
+
+.zona-clic:active {
+  transform: scale(0.92);
+}
+
+.personaje-placeholder {
+  width: 250px;
+  height: 350px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px dashed rgba(255,255,255,0.3);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 2rem;
+  box-shadow: 0 0 30px rgba(138, 43, 226, 0.2);
+}
+
+/* --- LADO DERECHO (PANEL MENÚ) --- */
+.panel-derecho {
+  width: 450px;
+  background-color: #1c1c38;
+  border-radius: 20px; /* Volvemos a redondear todo */
+  border: 2px solid #2d2d5a; /* Borde por los 4 lados */
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Sombra hacia abajo */
+}
+
+.menu-tabs {
+  display: flex;
+  background-color: #121224;
+  border-radius: 18px 18px 0 0; /* Arriba izquierda y derecha */
+  padding: 10px;
+  gap: 5px;
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #7a7a9a;
+  padding: 12px 5px;
+  cursor: pointer;
+  border-radius: 10px;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab.activa {
+  background-color: #2d2d5a;
+  color: white;
+}
+
+.menu-contenido {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+}
+
+.menu-contenido::-webkit-scrollbar {
+  width: 8px;
+}
+.menu-contenido::-webkit-scrollbar-thumb {
+  background-color: #3f3f74;
+  border-radius: 10px;
+}
+
+.mejora-card {
+  display: flex;
+  align-items: center;
+  background-color: #25254b;
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 12px;
+  border: 1px solid #3a3a6a;
+}
+
+.icono-mejora {
+  font-size: 2.5rem;
+  background-color: #121224;
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+}
+
+.info-mejora {
+  flex: 1;
+}
+
+.info-mejora h4 {
+  margin: 0 0 5px 0;
+  font-size: 1.1rem;
+}
+
+.info-mejora p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #a0d2eb;
+}
+
+.info-mejora p span {
+  color: #7a7a9a;
+}
+
+.btn-comprar {
+  background-color: #4cd137;
+  color: black;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 4px 0 #359825;
+  transition: transform 0.1s;
+}
+
+.btn-comprar:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #359825;
+}
+
+.placeholder-tab {
+  text-align: center;
+  padding: 50px;
+  color: #7a7a9a;
+}
+
+.btn-comprar:disabled {
+  background-color: #3f3f74;
+  color: #7a7a9a;
+  box-shadow: 0 4px 0 #2d2d5a;
+  cursor: not-allowed;
+}
+
+/* BOTÓN DE REBIRTH / PRESTIGIO FLOTANTE */
+.btn-rebirth-flotante {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #8e44ad, #9b59b6);
+  border: 3px solid #dcb5ff;
+  border-radius: 15px;
+  padding: 15px 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(155, 89, 182, 0.6);
+  animation: pulsar-rebirth 2s infinite;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.btn-rebirth-flotante:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+.btn-rebirth-flotante .icono-rebirth {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+}
+
+.btn-rebirth-flotante strong {
+  font-size: 1.2rem;
+  display: block;
+}
+
+.btn-rebirth-flotante span {
+  font-size: 0.9rem;
+  color: #f1c40f;
+  font-weight: bold;
+}
+
+/* Variante para cuando llegas a Prestigio (GODLIKE) */
+.btn-rebirth-flotante.prestigio {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border-color: #f1c40f;
+  box-shadow: 0 0 35px rgba(241, 196, 15, 0.8);
+  animation: pulsar-prestigio 1.5s infinite;
+}
+
+.btn-rebirth-flotante.prestigio span {
+  color: #fff;
+}
+
+@keyframes pulsar-rebirth {
+  0% { box-shadow: 0 0 15px rgba(155, 89, 182, 0.5); }
+  50% { box-shadow: 0 0 30px rgba(155, 89, 182, 0.9); }
+  100% { box-shadow: 0 0 15px rgba(155, 89, 182, 0.5); }
+}
+
+@keyframes pulsar-prestigio {
+  0% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); }
+  50% { box-shadow: 0 0 45px rgba(241, 196, 15, 1); transform: translateY(-50%) scale(1.05); }
+  100% { box-shadow: 0 0 20px rgba(241, 196, 15, 0.6); }
+}
+
+/* --- DESPLEGABLE DE NIVELES --- */
+.rango-contenedor {
+  position: relative;
+  z-index: 50; /* Lo pone por encima de todo */
+}
+
+.rango-badge.interactivo {
+  cursor: pointer;
+  transition: filter 0.2s, transform 0.1s;
+  user-select: none;
+}
+
+.rango-badge.interactivo:hover {
+  filter: brightness(1.2);
+}
+
+.rango-badge.interactivo:active {
+  transform: scale(0.95);
+}
+
+.dropdown-rangos {
+  position: absolute;
+  top: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  max-height: 350px;
+  background-color: #1c1c38;
+  border: 2px solid #3a3a6a;
+  border-radius: 12px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilizar la barra de scroll del desplegable */
+.dropdown-rangos::-webkit-scrollbar {
+  width: 6px;
+}
+.dropdown-rangos::-webkit-scrollbar-thumb {
+  background-color: #3f3f74;
+  border-radius: 10px;
+}
+
+.dropdown-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 20px;
+  border-bottom: 1px solid #2d2d5a;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item.desbloqueado {
+  color: white;
+}
+
+.dropdown-item.bloqueado {
+  color: #555577;
+  font-style: italic;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.dropdown-item.actual {
+  background-color: rgba(241, 196, 15, 0.15);
+  border-left: 4px solid #f1c40f;
+  color: #f1c40f;
+  font-weight: bold;
+}
+
+.rango-req {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
