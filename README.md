@@ -1,16 +1,29 @@
-# React + Vite
+# 👑 Aura Clicker
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Un juego incremental (idle/clicker) desarrollado con React y Vite. El objetivo principal es acumular "Aura" mediante clics manuales y generación pasiva, gestionar una economía dividida (saldo gastable vs. experiencia total) y ascender a través de un sistema de 16 rangos de dificultad exponencial.
 
-Currently, two official plugins are available:
+## 🚀 Características Principales
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Economía Dual:** Separación matemática entre el saldo actual (para compras) y el Aura Total acumulada (para progreso de rango), evitando que el jugador retroceda de nivel al comprar mejoras.
+- **Sistema de Progresión (16 Rangos):** Desde *Noob* hasta *GODLIKE*. La dificultad escala multiplicándose por 100 en cada nivel.
+- **Sistema de Descubrimiento:** Glosario interactivo que guarda en memoria el máximo nivel histórico alcanzado por el jugador, revelando los nombres ocultos ("???") gradualmente.
+- **Tienda de Mejoras Escalables:**
+    - 👆 *Click Power:* Aumenta el Aura base por clic.
+    - ⏱️ *Auto Click:* Generación de Aura pasiva por segundo.
+    - 💪 *Aura Multiplier:* Multiplicador global porcentual.
+    - 🎯 *Crit Chance:* Probabilidad (hasta 45%) de asestar un golpe crítico.
+    - 💥 *Golpe de Chad:* Multiplicador de daño crítico sin límite de nivel.
+- **Rebirth & Prestigio (Endgame):** Sistema de *soft-reset*. Al estancarse en ciertos rangos, el jugador debe hacer *Rebirth* (reinicia stats, otorga +10% de bono global y desbloquea más niveles). Al llegar al nivel máximo, el *Prestigio* reinicia todo el progreso a cambio de un multiplicador masivo del +100%.
 
-## React Compiler
+## 🛠️ Tecnologías Utilizadas
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend:** React 18
+- **Build Tool:** Vite
+- **Estilos:** CSS3 puro (Flexbox, animaciones, diseño responsive adaptado a layouts flotantes)
+- **Gestión de Estado:** React Hooks (`useState`, `useEffect`)
 
-## Expanding the Oxlint configuration
+## ⚙️ Instalación y Uso
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+1. Clona el repositorio:
+   ```bash
+   git clone [https://github.com/lperval2903/AuraClicker2.0](https://github.com/lperval2903/AuraClicker2.0.git)
