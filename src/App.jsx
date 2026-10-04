@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
 
-// DIFICULTAD x100
 const RANGOS = [
   { nombre: "Noob", auraMin: 0 },
   { nombre: "NPC", auraMin: 5000 },
@@ -22,13 +21,13 @@ const RANGOS = [
 ];
 
 const RAREZAS_MASCOTAS = [
-  { id: 'comun', nombre: 'Común', color: '#95a5a6', prob: 50, multBase: 2 },
-  { id: 'poco_comun', nombre: 'Poco Común', color: '#2ecc71', prob: 25, multBase: 5 },
-  { id: 'raro', nombre: 'Rara', color: '#3498db', prob: 12, multBase: 12 },
-  { id: 'especial', nombre: 'Especial', color: '#e67e22', prob: 8, multBase: 30 },
-  { id: 'epico', nombre: 'Épica', color: '#9b59b6', prob: 3.9, multBase: 100 },
-  { id: 'legendario', nombre: 'Legendaria', color: '#f1c40f', prob: 1, multBase: 500 },
-  { id: 'mitico', nombre: 'Mítica', color: '#e74c3c', prob: 0.1, multBase: 2500 }
+  { id: 'comun', nombre: 'Común', color: '#95a5a6', prob: 60, multBase: 2 },
+  { id: 'poco_comun', nombre: 'Poco Común', color: '#2ecc71', prob: 20, multBase: 5 },
+  { id: 'raro', nombre: 'Rara', color: '#3498db', prob: 10, multBase: 12 },
+  { id: 'especial', nombre: 'Especial', color: '#e67e22', prob: 5, multBase: 30 },
+  { id: 'epico', nombre: 'Épica', color: '#9b59b6', prob: 3.5, multBase: 100 },
+  { id: 'legendario', nombre: 'Legendaria', color: '#f1c40f', prob: 1.3, multBase: 500 },
+  { id: 'mitico', nombre: 'Mítica', color: '#e74c3c', prob: 0.2, multBase: 2500 }
 ];
 
 function App() {
@@ -49,17 +48,21 @@ function App() {
   const [nivelDanoCritico, setNivelDanoCritico] = useState(0);
 
   const [textosFlotantes, setTextosFlotantes] = useState([]);
+
   const [inventarioMascotas, setInventarioMascotas] = useState([]);
   const [mascotaEquipada, setMascotaEquipada] = useState(null);
 
-  const costeHuevo = Math.floor(100000 * Math.pow(1.2, inventarioMascotas.length));
+  // ESTADOS DE UI PARA HUEVOS
+  const [estadoRuleta, setEstadoRuleta] = useState({ activa: false, items: [], ganador: null, girando: false });
+  const [premiosMultiples, setPremiosMultiples] = useState(null); // Guardará el array de 5 o 10 mascotas
+
+  const costeHuevo = 100000;
 
   // ==========================================
-  // MATEMÁTICAS EXACTAS (Con seguros anti-NaN)
+  // MATEMÁTICAS EXACTAS
   // ==========================================
   const bonoAscension = Number(1 + (rebirths * 0.10) + (prestigios * 1.0)) || 1;
   const bonoMascota = mascotaEquipada && mascotaEquipada.multiplicador ? Number(mascotaEquipada.multiplicador) : 1;
-
   const multiplicadorGlobal = Number(Math.pow(1.5, nivelMultiplicador) * bonoAscension * bonoMascota) || 1;
 
   const poderClickBase = Number(nivelPoderClick) || 1;
@@ -79,22 +82,19 @@ function App() {
   // ==========================================
   // LÓGICA DE MASCOTAS
   // ==========================================
-  const abrirHuevo = () => {
-    if (saldo < costeHuevo) return;
-    setSaldo(s => s - costeHuevo);
-
+  const generarMascotaAleatoria = () => {
     const tiradaRareza = Math.random() * 100;
     let probAcumulada = 0;
     let rarezaObtenida = RAREZAS_MASCOTAS[0];
 
     for (let r of RAREZAS_MASCOTAS) {
       probAcumulada += r.prob;
-      if (tiradaRareza <= probAcumulada) {
-        rarezaObtenida = r;
-        break;
-      }
+      if (tiradaRareza <= probAcumulada) { rarezaObtenida = r; break; }
     }
+    return crearMascotaEspecifica(rarezaObtenida);
+  };
 
+  const crearMascotaEspecifica = (rarezaObj) => {
     const tiradaNivel = Math.random();
     let fase = 1;
     if (tiradaNivel > 0.5) fase = 2;
@@ -102,24 +102,69 @@ function App() {
     if (tiradaNivel > 0.90) fase = 4;
     if (tiradaNivel > 0.98) fase = 5;
 
-    const multFinal = rarezaObtenida.multBase * (1 + ((fase - 1) * 0.20));
-
-    const nuevaMascota = {
+    const multFinal = rarezaObj.multBase * (1 + ((fase - 1) * 0.20));
+    return {
       idUnico: Math.random().toString(36).substring(2, 9),
-      rareza: rarezaObtenida,
+      rareza: rarezaObj,
       fase: fase,
       multiplicador: multFinal
     };
-
-    setInventarioMascotas(prev => [...prev, nuevaMascota]);
   };
 
-  const equiparMascota = (mascota) => {
-    setMascotaEquipada(mascota);
+  const abrirHuevos = (cantidad) => {
+    const costeTotal = costeHuevo * cantidad;
+    if (saldo < costeTotal) return;
+    setSaldo(s => s - costeTotal);
+
+    // Generamos las mascotas requeridas
+    const mascotasGanadas = Array.from({ length: cantidad }).map(() => generarMascotaAleatoria());
+
+    if (cantidad === 1) {
+      // TIRON ÚNICO: Ruleta estilo CS
+      const mascotaGanadora = mascotasGanadas[0];
+      const itemsVisuales = Array.from({ length: 55 }).map(() => generarMascotaAleatoria());
+      itemsVisuales[45] = mascotaGanadora;
+
+      setEstadoRuleta({ activa: true, items: itemsVisuales, ganador: mascotaGanadora, girando: false });
+      setTimeout(() => { setEstadoRuleta(prev => ({ ...prev, girando: true })); }, 100);
+      setTimeout(() => { setInventarioMascotas(prev => [...prev, mascotaGanadora]); }, 5500);
+    } else {
+      // MULTIPLES TIRONES: Drop instantáneo con modal de resumen
+      setInventarioMascotas(prev => [...prev, ...mascotasGanadas]);
+      setPremiosMultiples(mascotasGanadas);
+    }
+  };
+
+  const cerrarRuleta = () => setEstadoRuleta({ activa: false, items: [], ganador: null, girando: false });
+  const cerrarPremiosMultiples = () => setPremiosMultiples(null);
+
+  const equiparMascota = (mascota) => { setMascotaEquipada(mascota); };
+
+  const fusionarMascotas = (indexRareza) => {
+    const rarezaActual = RAREZAS_MASCOTAS[indexRareza];
+    const rarezaSiguiente = RAREZAS_MASCOTAS[indexRareza + 1];
+
+    const cantidadNecesaria = rarezaActual.id === 'legendario' ? 5 : 10;
+    const mascotasDisponibles = inventarioMascotas.filter(m => m.rareza.id === rarezaActual.id);
+    if (mascotasDisponibles.length < cantidadNecesaria) return;
+
+    const sacrificios = mascotasDisponibles.slice(0, cantidadNecesaria);
+    const idsSacrificados = sacrificios.map(m => m.idUnico);
+
+    if (mascotaEquipada && idsSacrificados.includes(mascotaEquipada.idUnico)) {
+      setMascotaEquipada(null);
+    }
+
+    const nuevaMascota = crearMascotaEspecifica(rarezaSiguiente);
+
+    setInventarioMascotas(prev => {
+      const inventarioFiltrado = prev.filter(m => !idsSacrificados.includes(m.idUnico));
+      return [...inventarioFiltrado, nuevaMascota];
+    });
   };
 
   // ==========================================
-  // LÓGICA DE JUEGO (Con seguro anti-roturas)
+  // LÓGICA DE JUEGO BÁSICA
   // ==========================================
   const hacerClic = (e) => {
     let multiplicadorGolpe = 1;
@@ -135,11 +180,9 @@ function App() {
       setAuraTotal(a => Number(a) + auraGanada);
     }
 
-    // Efectos flotantes (Fallback si e.clientX no existe en pantallas táctiles rápidas)
     const x = e.clientX || window.innerWidth / 2;
     const y = e.clientY || window.innerHeight / 2;
     const idUnico = Math.random().toString(36).substring(2, 9);
-
     const nuevosTextos = [{ id: idUnico + '-base', x: x, y: y, valor: auraBase, tipo: 'normal' }];
     if (esCritico) nuevosTextos.push({ id: idUnico + '-crit', x: x + 40, y: y - 20, valor: auraExtra, tipo: 'critico' });
 
@@ -171,15 +214,12 @@ function App() {
 
   const rangoActual = RANGOS[indexRangoActual];
   const siguienteRango = RANGOS[indexRangoActual + 1];
-
   const puedeHacerRebirth = estancado && indexMaxRango < RANGOS.length - 1;
   const puedeHacerPrestigio = estancado && indexMaxRango === RANGOS.length - 1;
 
   let porcentajeProgreso = 100;
   if (siguienteRango && !estancado) {
-    const auraReqNivel = siguienteRango.auraMin - rangoActual.auraMin;
-    const auraConsNivel = auraTotal - rangoActual.auraMin;
-    porcentajeProgreso = (auraConsNivel / auraReqNivel) * 100;
+    porcentajeProgreso = ((auraTotal - rangoActual.auraMin) / (siguienteRango.auraMin - rangoActual.auraMin)) * 100;
   }
 
   useEffect(() => { if (indexRangoActual > maxNivelHistorico) setMaxNivelHistorico(indexRangoActual); }, [indexRangoActual, maxNivelHistorico]);
@@ -191,55 +231,76 @@ function App() {
   };
 
   const numerosRomanos = ["", "I", "II", "III", "IV", "V"];
-
-  // ==========================================
-  // TRAMPA DE DESARROLLADOR
-  // ==========================================
-  const botonDevAura = () => {
-    const trampa = 100000000000000000; // 1aa (100 Quadrillones)
-    setSaldo(s => Number(s) + trampa);
-    setAuraTotal(a => Number(a) + trampa);
-  };
+  const botonDevAura = () => { const trampa = 100000000000000000; setSaldo(s => Number(s) + trampa); setAuraTotal(a => Number(a) + trampa); };
 
   return (
       <div className="juego-contenedor">
 
-        {/* BOTÓN DEV FLOTANTE */}
-        <button
-            onClick={botonDevAura}
-            style={{
-              position: 'absolute', bottom: '20px', left: '20px',
-              backgroundColor: '#c0392b', color: 'white', border: '2px solid #e74c3c',
-              borderRadius: '8px', padding: '10px 15px', fontWeight: 'bold',
-              cursor: 'pointer', zIndex: 1000, boxShadow: '0 4px 10px rgba(0,0,0,0.5)'
-            }}>
-          🛠️ DEV: +1aa Aura
-        </button>
+        {/* MODAL RULETA x1 */}
+        {estadoRuleta.activa && (
+            <div className="modal-ruleta-overlay">
+              <div className="modal-ruleta-contenido">
+                <h2>Abriendo Huevo...</h2>
+                <div className="ruleta-ventana">
+                  <div className="ruleta-linea-centro"></div>
+                  <div className="ruleta-cinta" style={{ transform: estadoRuleta.girando ? `translateX(calc(-${45 * 140}px + 50vw - 70px + ${Math.random() * 60 - 30}px))` : 'translateX(50vw)' }}>
+                    {estadoRuleta.items.map((masc, idx) => (
+                        <div key={idx} className="ruleta-carta" style={{ borderBottomColor: masc.rareza.color }}>
+                          <div className="carta-fase">Fase {numerosRomanos[masc.fase]}</div>
+                          <div className="carta-nombre" style={{ color: masc.rareza.color }}>{masc.rareza.nombre}</div>
+                          <div className="carta-mult">x{masc.multiplicador.toFixed(1)}</div>
+                        </div>
+                    ))}
+                  </div>
+                </div>
+                {inventarioMascotas.some(m => m.idUnico === estadoRuleta.ganador?.idUnico) && (
+                    <div className="ruleta-premio-revelado">
+                      <h3 style={{ color: estadoRuleta.ganador.rareza.color }}>¡{estadoRuleta.ganador.rareza.nombre}!</h3>
+                      <button className="btn-comprar" onClick={cerrarRuleta}>Aceptar</button>
+                    </div>
+                )}
+              </div>
+            </div>
+        )}
+
+        {/* MODAL MULTIPLES PREMIOS (x5 y x10) */}
+        {premiosMultiples && (
+            <div className="modal-ruleta-overlay">
+              <div className="modal-ruleta-contenido">
+                <h2 style={{ color: '#f1c40f' }}>¡Nuevas Mascotas Obtenidas!</h2>
+                <div className="grid-premios-multiples">
+                  {premiosMultiples.map((masc, idx) => (
+                      <div key={idx} className="mascota-item" style={{ borderBottom: `4px solid ${masc.rareza.color}`, minWidth: '110px' }}>
+                        <div className="mascota-fase">Fase {numerosRomanos[masc.fase]}</div>
+                        <div className="mascota-nombre" style={{ color: masc.rareza.color }}>{masc.rareza.nombre}</div>
+                        <div className="mascota-mult">x{masc.multiplicador.toFixed(1)}</div>
+                      </div>
+                  ))}
+                </div>
+                <button className="btn-comprar" style={{ marginTop: '30px' }} onClick={cerrarPremiosMultiples}>Continuar</button>
+              </div>
+            </div>
+        )}
+
+        <button onClick={botonDevAura} style={{ position: 'absolute', bottom: '20px', left: '20px', backgroundColor: '#c0392b', color: 'white', border: '2px solid #e74c3c', borderRadius: '8px', padding: '10px 15px', fontWeight: 'bold', cursor: 'pointer', zIndex: 1000, boxShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>🛠️ DEV: +1aa Aura</button>
 
         <div className="zona-juego">
           {(puedeHacerRebirth || puedeHacerPrestigio) && (
               <button className={`btn-rebirth-flotante ${puedeHacerPrestigio ? 'prestigio' : ''}`} onClick={ejecutarRenacimiento}>
                 <div className="icono-rebirth">🔄</div>
-                <div>
-                  <strong>{puedeHacerPrestigio ? 'PRESTIGIO' : 'REBIRTH'}</strong>
-                  <span>{puedeHacerPrestigio ? '+100% Aura' : '+10% Aura'}</span>
-                </div>
+                <div><strong>{puedeHacerPrestigio ? 'PRESTIGIO' : 'REBIRTH'}</strong><span>{puedeHacerPrestigio ? '+100% Aura' : '+10% Aura'}</span></div>
               </button>
           )}
 
           <div className="estadisticas-top">
             <div className="rango-contenedor">
-              <div className="rango-badge interactivo" onClick={() => setMostrarNiveles(!mostrarNiveles)}>
-                👑 {rangoActual.nombre} {mostrarNiveles ? '▴' : '▾'}
-              </div>
-
+              <div className="rango-badge interactivo" onClick={() => setMostrarNiveles(!mostrarNiveles)}>👑 {rangoActual.nombre} {mostrarNiveles ? '▴' : '▾'}</div>
               {mostrarNiveles && (
                   <div className="dropdown-rangos">
                     {RANGOS.map((rango, index) => {
                       const estaDesbloqueado = index <= maxNivelHistorico;
-                      const esActual = index === indexRangoActual;
                       return (
-                          <div key={index} className={`dropdown-item ${estaDesbloqueado ? 'desbloqueado' : 'bloqueado'} ${esActual ? 'actual' : ''}`}>
+                          <div key={index} className={`dropdown-item ${estaDesbloqueado ? 'desbloqueado' : 'bloqueado'} ${index === indexRangoActual ? 'actual' : ''}`}>
                             <span className="rango-nombre">{estaDesbloqueado ? rango.nombre : '???'}</span>
                             <span className="rango-req">{estaDesbloqueado ? rango.auraMin.toLocaleString() : '???'} Aura</span>
                           </div>
@@ -251,7 +312,6 @@ function App() {
 
             <div className="monedas-totales"><span>{Math.floor(saldo).toLocaleString()} Aura</span></div>
             <div style={{ color: '#7a7a9a', fontSize: '0.9rem', marginBottom: '10px' }}>Aura Acumulada: {Math.floor(auraTotal).toLocaleString()}</div>
-
             <div className="monedas-segundo">+{clickReal.toFixed(1)} per click | +{autoClickReal.toFixed(1)}/sec</div>
 
             {mascotaEquipada && (
@@ -262,21 +322,12 @@ function App() {
 
             <div className="contenedor-progreso">
               <div className={`barra-progreso ${estancado ? 'max-level' : ''}`} style={{ width: `${porcentajeProgreso}%` }}></div>
-              <span className="texto-progreso">
-              {puedeHacerPrestigio ? '¡NIVEL MÁXIMO! HAZ PRESTIGIO' : puedeHacerRebirth ? '¡BLOQUEO ALCANZADO! HAZ REBIRTH' : `Siguiente: ${siguienteRango?.nombre} (${siguienteRango?.auraMin.toLocaleString()})`}
-            </span>
+              <span className="texto-progreso">{puedeHacerPrestigio ? '¡NIVEL MÁXIMO! HAZ PRESTIGIO' : puedeHacerRebirth ? '¡BLOQUEO ALCANZADO! HAZ REBIRTH' : `Siguiente: ${siguienteRango?.nombre} (${siguienteRango?.auraMin.toLocaleString()})`}</span>
             </div>
           </div>
 
-          <div className="zona-clic" onClick={hacerClic}>
-            <div className="personaje-placeholder">¡PIKAR!</div>
-          </div>
-
-          {textosFlotantes.map(flotante => (
-              <div key={flotante.id} className={`numero-flotante ${flotante.tipo}`} style={{ left: flotante.x, top: flotante.y }}>
-                +{flotante.valor.toFixed(1)}
-              </div>
-          ))}
+          <div className="zona-clic" onClick={hacerClic}><div className="personaje-placeholder">¡PIKAR!</div></div>
+          {textosFlotantes.map(flotante => (<div key={flotante.id} className={`numero-flotante ${flotante.tipo}`} style={{ left: flotante.x, top: flotante.y }}>+{flotante.valor.toFixed(1)}</div>))}
         </div>
 
         <div className="panel-derecho">
@@ -300,21 +351,63 @@ function App() {
 
             {pestañaActiva === 'mascotas' && (
                 <div className="lista-mejoras">
-                  <button className="btn-huevo" onClick={abrirHuevo} disabled={saldo < costeHuevo}>
-                    🥚 Abrir Huevo<br/><span>Coste: ✨ {costeHuevo.toLocaleString()} Aura</span>
-                  </button>
 
-                  <h3 style={{color: '#a0d2eb', marginTop: '20px'}}>Tus Mascotas ({inventarioMascotas.length})</h3>
+                  {/* BOTONES MÚLTIPLES DE HUEVOS */}
+                  <div className="botones-huevo">
+                    <button className="btn-huevo" onClick={() => abrirHuevos(1)} disabled={saldo < costeHuevo}>
+                      🥚 x1<br/><span>✨ {costeHuevo.toLocaleString()}</span>
+                    </button>
+                    <button className="btn-huevo" onClick={() => abrirHuevos(5)} disabled={saldo < costeHuevo * 5}>
+                      🥚 x5<br/><span>✨ {(costeHuevo * 5).toLocaleString()}</span>
+                    </button>
+                    <button className="btn-huevo" onClick={() => abrirHuevos(10)} disabled={saldo < costeHuevo * 10}>
+                      🥚 x10<br/><span>✨ {(costeHuevo * 10).toLocaleString()}</span>
+                    </button>
+                  </div>
 
+                  <div className="contratos-contenedor">
+                    <h4 style={{color: '#a0d2eb', margin: '0 0 10px 0'}}>Fusión de Mascotas (Trade-Up)</h4>
+                    <div className="grid-contratos">
+                      {RAREZAS_MASCOTAS.map((rareza, index) => {
+                        if (index === RAREZAS_MASCOTAS.length - 1) return null;
+
+                        const cantidadQueTengo = inventarioMascotas.filter(m => m.rareza.id === rareza.id).length;
+                        const cantidadNecesaria = rareza.id === 'legendario' ? 5 : 10;
+                        const rarezaSiguiente = RAREZAS_MASCOTAS[index + 1];
+                        const puedeFusionar = cantidadQueTengo >= cantidadNecesaria;
+
+                        if (cantidadQueTengo === 0 && !puedeFusionar) return null;
+
+                        return (
+                            <div key={rareza.id} className="contrato-item" style={{ borderLeftColor: rareza.color }}>
+                              <div className="contrato-info">
+                                <span style={{color: rareza.color}}>{rareza.nombre}</span>
+                                <span style={{color: '#7a7a9a'}}> {cantidadQueTengo} / {cantidadNecesaria}</span>
+                              </div>
+                              <button
+                                  className="btn-fusionar"
+                                  disabled={!puedeFusionar}
+                                  onClick={() => fusionarMascotas(index)}
+                                  style={{ backgroundColor: puedeFusionar ? rarezaSiguiente.color : '#3f3f74', color: puedeFusionar ? 'black' : '#7a7a9a' }}
+                              >
+                                Crear {rarezaSiguiente.nombre}
+                              </button>
+                            </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <h4 style={{color: '#a0d2eb', marginTop: '20px', marginBottom: '10px'}}>Tus Mascotas ({inventarioMascotas.length})</h4>
                   <div className="grid-mascotas">
                     {inventarioMascotas.length === 0 ? (
                         <p style={{color: '#555577', fontStyle: 'italic', gridColumn: '1 / -1', textAlign: 'center'}}>Aún no tienes mascotas. ¡Abre un huevo!</p>
                     ) : (
-                        inventarioMascotas.map((mascota) => (
+                        [...inventarioMascotas].reverse().map((mascota) => (
                             <div
                                 key={mascota.idUnico}
                                 className={`mascota-item ${mascotaEquipada?.idUnico === mascota.idUnico ? 'equipada' : ''}`}
-                                style={{ borderTop: `4px solid ${mascota.rareza.color}` }}
+                                style={{ borderBottom: `4px solid ${mascota.rareza.color}` }}
                                 onClick={() => equiparMascota(mascota)}
                             >
                               <div className="mascota-fase">Fase {numerosRomanos[mascota.fase]}</div>
@@ -328,7 +421,6 @@ function App() {
             )}
 
             {pestañaActiva === 'skins' && <div className="placeholder-tab">Sección de Skins en construcción...</div>}
-
             {pestañaActiva === 'stats' && (
                 <div className="lista-mejoras">
                   <h3 style={{color: '#a0d2eb', textAlign: 'center'}}>Estadísticas Generales</h3>
